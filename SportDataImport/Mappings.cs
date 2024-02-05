@@ -1,6 +1,6 @@
-﻿using SportDataImport.Enums;
+﻿using SportDataImport.Domain.Enums;
 using SportDataImport.Import;
-using SportDataImport.Mongo;
+using SportDataImport.Mongo.Entities;
 
 namespace SportDataImport;
 

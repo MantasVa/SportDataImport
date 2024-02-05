@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
 using SportDataImport.Interfaces;
-using SportDataImport.Mongo;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Services;
 
@@ -10,12 +11,21 @@ public sealed class EuroleagueFeaturesService : IEuroleagueFeaturesService
 {
     private const int StartSeasonYear = 2003;
 
+    private readonly IMongoService<EuroleagueFeature> _featuresCollection;
+    private readonly IMongoService<Game> _gamesCollection;
+    private readonly IMongoService<Team> _teamCollection;
     private readonly ILogger<EuroleagueFeaturesService> _logger;
     private readonly string _competitionCode;
 
     public EuroleagueFeaturesService(
+        IMongoService<EuroleagueFeature> featuresCollection,
+        IMongoService<Game> gamesCollection,
+        IMongoService<Team> teamCollection,
         ILogger<EuroleagueFeaturesService> logger)
     {
+        _featuresCollection = featuresCollection;
+        _gamesCollection = gamesCollection;
+        _teamCollection = teamCollection;
         _logger = logger;
         _competitionCode = Competition.Euroleague.ToAbbreviation();
     }
@@ -23,18 +33,13 @@ public sealed class EuroleagueFeaturesService : IEuroleagueFeaturesService
     public async Task PrepareFeatureData()
     {
         var currentEuroleagueSeasonCode = EuroleagueHelper.GetCurrentEuroleagueSeasonCode();
-
-        var mongoClient = new MongoClient(Constants.ConnectionString);
-        var database = mongoClient.GetDatabase(Constants.DatabaseName);
-        var gamesCollection = database.GetCollection<Game>(Constants.GameCollectionName);
-
-        var finalFourTeams = await database.GetCollection<Team>(Constants.TeamCollectionName).Find(x => x.FinalFourAppearances != null).ToListAsync();
+        var finalFourTeams = await _teamCollection.GetBy(x => x.FinalFourAppearances != null);
 
         var features = new List<EuroleagueFeature>();
-        var games = await gamesCollection.Find(x => true).ToListAsync();
+        var games = await _gamesCollection.GetAll();
 
         // Set data from 2003 season to have all the data.
-        var toYear = int.Parse(currentEuroleagueSeasonCode.Replace(Competition.Euroleague.ToAbbreviation(), ""));
+        var toYear = int.Parse(currentEuroleagueSeasonCode.Replace(Competition.Euroleague.ToAbbreviation(), string.Empty));
         foreach (var year in Enumerable.Range(StartSeasonYear, toYear - StartSeasonYear))
         {
             var seasonGames = games.Where(x => x.SeasonCode == $"{_competitionCode}{year}").ToList();
@@ -142,15 +147,13 @@ public sealed class EuroleagueFeaturesService : IEuroleagueFeaturesService
             }
         }
 
-        var featuresCollection = database.GetCollection<EuroleagueFeature>(Constants.EuroleagueFeaturesCollectionName);
-        var featuresCount = await featuresCollection.CountDocumentsAsync(x => true);
-
+        var featuresCount = await _featuresCollection.Count();
         if (featuresCount > 0)
         {
-            featuresCollection.DeleteMany(x => true);
+            await _featuresCollection.DeleteBy(x => true);
         }
 
-        await featuresCollection.InsertManyAsync(features);
+        await _featuresCollection.InsertMany(features);
     }
 
     private static bool IsPrevious3SeasonsForTeam(Game game, string clubCode, string competitionCode, DateTime gameDate)

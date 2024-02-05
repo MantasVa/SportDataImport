@@ -1,12 +1,12 @@
-﻿namespace SportDataImport.Enums;
+﻿namespace SportDataImport.Domain.Enums;
 
-internal enum Phase : byte
+public enum Phase : byte
 {
     RegularSeason = 1,
     Playoffs = 2,
 }
 
-internal static class PhaseExtensions
+public static class PhaseExtensions
 {
     public static Phase ToPhase(string phase)
     {

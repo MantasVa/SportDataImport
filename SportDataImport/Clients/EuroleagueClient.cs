@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Newtonsoft.Json;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
 using SportDataImport.Import;
 
 namespace SportDataImport.Clients;

@@ -1,10 +1,12 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
+using SportDataImport.Mongo.Attributes;
 
-namespace SportDataImport.Mongo;
+namespace SportDataImport.Mongo.Entities;
 
-internal sealed record class Game
+[BsonCollectionName(Constants.GameCollectionName)]
+public sealed record class Game
 {
     [BsonId]
     public ObjectId Id { get; set; }

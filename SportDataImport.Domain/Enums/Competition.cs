@@ -1,12 +1,12 @@
-﻿namespace SportDataImport.Enums;
+﻿namespace SportDataImport.Domain.Enums;
 
-internal enum Competition : byte
+public enum Competition : byte
 {
     None = 0,
     Euroleague = 1,
 }
 
-internal static class CompetitionExtensions
+public static class CompetitionExtensions
 {
     public static Competition ToCompetition(string competition)
     {

@@ -1,9 +1,11 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using SportDataImport.Mongo.Attributes;
 
-namespace SportDataImport.Mongo;
+namespace SportDataImport.Mongo.Entities;
 
-internal record EuroleagueFeature
+[BsonCollectionName(Constants.EuroleagueFeaturesCollectionName)]
+public record EuroleagueFeature
 {
     [BsonId]
     public ObjectId Id { get; set; }

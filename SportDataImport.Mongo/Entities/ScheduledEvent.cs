@@ -1,11 +1,13 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
+using SportDataImport.Mongo.Attributes;
 
-namespace SportDataImport.Mongo;
+namespace SportDataImport.Mongo.Entities;
 
-internal sealed record ScheduledEvent : IEquatable<ScheduledEvent>
+[BsonCollectionName(Constants.ScheduleCollectionName)]
+public sealed record ScheduledEvent : IEquatable<ScheduledEvent>
 {
     public ScheduledEvent(
         long gameCode, 

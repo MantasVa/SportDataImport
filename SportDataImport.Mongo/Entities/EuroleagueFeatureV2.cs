@@ -1,8 +1,10 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using SportDataImport.Mongo.Attributes;
 
-namespace SportDataImport.Mongo;
+namespace SportDataImport.Mongo.Entities;
 
-internal record EuroleagueFeatureV2 : EuroleagueFeature
+[BsonCollectionName(Constants.EuroleagueFeaturesV2CollectionName)]
+public record EuroleagueFeatureV2 : EuroleagueFeature
 {
 
     [BsonElement("homeWinAgainstRoadPercentage")]

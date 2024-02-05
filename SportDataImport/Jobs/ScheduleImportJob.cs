@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SportDataImport.Clients;
-using SportDataImport.Mongo;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Jobs;
 
@@ -13,15 +14,21 @@ internal interface IScheduleImportJob
 
 internal class ScheduleImportJob : IScheduleImportJob
 {
+    private readonly IMongoService<Game> _gamesCollection;
+    private readonly IMongoService<ScheduledEvent> _scheduleCollection;
     private readonly ILogger<ScheduleImportJob> _logger;
     private readonly IEuroleagueClient _euroleagueClient;
 
     public ScheduleImportJob(
         ILogger<ScheduleImportJob> logger,
-        IEuroleagueClient euroleagueClient)
+        IEuroleagueClient euroleagueClient,
+        IMongoService<ScheduledEvent> scheduleCollection,
+        IMongoService<Game> gamesCollection)
     {
         _logger = logger;
         _euroleagueClient = euroleagueClient;
+        _scheduleCollection = scheduleCollection;
+        _gamesCollection = gamesCollection;
     }
 
     public async Task ImportEuroleagueScheduleAsync()
@@ -29,9 +36,7 @@ internal class ScheduleImportJob : IScheduleImportJob
         var currentEuroleagueSeasonCode = EuroleagueHelper.GetCurrentEuroleagueSeasonCode();
         var (success, events) = await _euroleagueClient.GetGames(currentEuroleagueSeasonCode);
 
-        var database = new MongoClient(Constants.ConnectionString).GetDatabase(Constants.DatabaseName);
-        var scheduleCollection = database.GetCollection<ScheduledEvent>(Constants.ScheduleCollectionName);
-        var schedule = await scheduleCollection.Find(_ => true).ToListAsync();
+        var schedule = await _scheduleCollection.GetAll();
         var scheduleAdded = 0;
 
         if (!success)
@@ -45,8 +50,7 @@ internal class ScheduleImportJob : IScheduleImportJob
             // Game is already played. Check if we have a record in games collection, put into schedule if not.
             if (game.Played.HasValue && game.Played.Value)
             {
-                var gamesCollection = database.GetCollection<Game>(Constants.GameCollectionName);
-                var storedGames = await (await gamesCollection.FindAsync(x => x.SeasonCode == game.Season!.Code && x.GameCode == game.GameCode)).ToListAsync();
+                var storedGames = await _gamesCollection.GetBy(x => x.SeasonCode == game.Season!.Code && x.GameCode == game.GameCode);
 
                 if (storedGames.Any())
                 {
@@ -66,13 +70,13 @@ internal class ScheduleImportJob : IScheduleImportJob
             {
                 scheduleAdded++;
                 _logger.LogInformation("Storing new scheduled event in season {SeasonCode} and game code {GameCode}", scheduledEvent.SeasonCode, scheduledEvent.GameCode);
-                scheduleCollection.InsertOne(scheduledEvent);
+                await _scheduleCollection.Insert(scheduledEvent);
             }
             else if (!storedEvent.Equals(scheduledEvent))
             {
                 _logger.LogInformation("Stored event is different from the client one for {GameCode}", scheduledEvent.GameCode);
-                scheduleCollection.DeleteMany(x => x.SeasonCode == scheduledEvent.SeasonCode && x.GameCode == scheduledEvent.GameCode);
-                scheduleCollection.InsertOne(scheduledEvent);
+                await _scheduleCollection.DeleteBy(x => x.SeasonCode == scheduledEvent.SeasonCode && x.GameCode == scheduledEvent.GameCode);
+                await _scheduleCollection.Insert(scheduledEvent);
             }
         }
 

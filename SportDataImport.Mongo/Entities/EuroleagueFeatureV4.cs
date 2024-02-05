@@ -1,9 +1,11 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
+using SportDataImport.Mongo.Attributes;
 
-namespace SportDataImport.Mongo;
+namespace SportDataImport.Mongo.Entities;
 
-internal record EuroleagueFeatureV4 : EuroleagueFeatureV2
+[BsonCollectionName(Constants.EuroleagueFeaturesV4CollectionName)]
+public record EuroleagueFeatureV4 : EuroleagueFeatureV2
 {
     [BsonElement("weekType")]
     public float WeekType { get; set; }

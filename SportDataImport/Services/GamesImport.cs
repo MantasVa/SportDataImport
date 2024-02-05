@@ -3,6 +3,8 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using SportDataImport.Clients;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Import;
 
@@ -13,26 +15,25 @@ internal interface IGamesImport
 
 internal sealed class GamesImport : IGamesImport
 {
+    private readonly IMongoService<Game> _gamesCollection;
     private readonly IEuroleagueClient _euroleagueClient;
     private readonly ILogger _logger;
 
     public GamesImport(
         IEuroleagueClient euroleagueClient,
-        ILogger<GamesImport> logger)
+        ILogger<GamesImport> logger,
+        IMongoService<Game> gamesCollection)
     {
         _euroleagueClient = euroleagueClient;
         _logger = logger;
+        _gamesCollection = gamesCollection;
     }
 
     public async Task ImportEuroleagueGamesAsync(string[] seasonCodes)
     {
         var currentEuroleagueSeasonCode = EuroleagueHelper.GetCurrentEuroleagueSeasonCode();
 
-        var mongoClient = new MongoClient(Constants.ConnectionString);
-        var database = mongoClient.GetDatabase(Constants.DatabaseName);
-        var collection = database.GetCollection<BsonDocument>(Constants.GameCollectionName);
-
-        var games = new List<BsonDocument>();
+        var games = new List<Game>();
         foreach (var seasonCode in seasonCodes)
         {
             foreach (var gameCode in Enumerable.Range(1, 400))
@@ -57,10 +58,10 @@ internal sealed class GamesImport : IGamesImport
 
                 _logger.LogInformation("Game added in Season {SeasonCode} game code {GameCode}", seasonCode, gameCode);
 
-                games.Add(game.ToGame().ToBsonDocument());
+                games.Add(game.ToGame());
             }
         }
-        await collection.InsertManyAsync(games);
+        await _gamesCollection.InsertMany(games);
 
         _logger.LogInformation("Euroleague game import complete. Imported {Count} games", games.Count);
     }

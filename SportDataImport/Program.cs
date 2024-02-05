@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SportDataImport.Import;
 using SportDataImport.Jobs;
 
 namespace SportDataImport;

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using SportDataImport.Clients;
-using SportDataImport.Mongo;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Jobs;
 
@@ -13,27 +13,31 @@ internal interface IScheduleOutcomeEvaluatorJob
 
 internal class ScheduleOutcomeEvaluatorJob : IScheduleOutcomeEvaluatorJob
 {
+    private readonly IMongoService<Game> _gamesCollection;
+    private readonly IMongoService<ScheduledEvent> _scheduleCollection;
     private readonly ILogger<ScheduleOutcomeEvaluatorJob> _logger;
     private readonly IEuroleagueClient _euroleagueClient;
 
     public ScheduleOutcomeEvaluatorJob(
         ILogger<ScheduleOutcomeEvaluatorJob> logger,
-        IEuroleagueClient euroleagueClient)
+        IEuroleagueClient euroleagueClient,
+        IMongoService<Game> gamesCollection,
+        IMongoService<ScheduledEvent> scheduleCollection)
     {
         _logger = logger;
         _euroleagueClient = euroleagueClient;
+        _gamesCollection = gamesCollection;
+        _scheduleCollection = scheduleCollection;
     }
 
     public async Task ImportEuroleagueScheduleAsync()
     {
-        var database = new MongoClient(Constants.ConnectionString).GetDatabase(Constants.DatabaseName);
-        var scheduleCollection = database.GetCollection<ScheduledEvent>(Constants.ScheduleCollectionName);
-        var playSchedule = await scheduleCollection.Find(x => x.UtcDate <= DateTime.UtcNow).ToListAsync();
+        var playSchedule = (await _scheduleCollection.GetBy(x => x.UtcDate <= DateTime.UtcNow)).OrderBy(x => x.UtcDate);
 
-        var gamesCollection = database.GetCollection<Game>(Constants.GameCollectionName);
+        var gamesCollection = _gamesCollection.GetAll();
         var gamesAdded = 0;
 
-        foreach (var @event in playSchedule.OrderBy(x => x.UtcDate))
+        foreach (var @event in playSchedule)
         {
             var (isSuccess, game) = await _euroleagueClient.GetGame(@event.SeasonCode, @event.GameCode);
 
@@ -55,14 +59,14 @@ internal class ScheduleOutcomeEvaluatorJob : IScheduleOutcomeEvaluatorJob
                 continue;
             }
 
-            var storedGames = await (await gamesCollection.FindAsync(x => x.SeasonCode == @event.SeasonCode && x.GameCode == @event.GameCode)).ToListAsync();
+            var storedGames = await _gamesCollection.GetBy(x => x.SeasonCode == @event.SeasonCode && x.GameCode == @event.GameCode);
             if (storedGames.Any())
             {
                 _logger.LogWarning("Scheduled event with season code {SeasonCode} and code {GameCode} is already present in collection", @event.SeasonCode, @event.GameCode);
                 continue;
             }
 
-            var result = await scheduleCollection.DeleteManyAsync(x => x.SeasonCode == @event.SeasonCode && x.GameCode == @event.GameCode);
+            var result = await _scheduleCollection.DeleteBy(x => x.SeasonCode == @event.SeasonCode && x.GameCode == @event.GameCode);
             if (result.DeletedCount == 0 || !result.IsAcknowledged)
             {
                 _logger.LogError("Schedule deletion failed for season {SeasonCode} game {GameCode} with result {DeleteCount}, {IsAcknowledged}",
@@ -75,9 +79,7 @@ internal class ScheduleOutcomeEvaluatorJob : IScheduleOutcomeEvaluatorJob
                     @event.SeasonCode, @event.GameCode, result.DeletedCount);
             }
 
-            var gameEntity = game.ToGame().ToBsonDocument();
-            var collection = database.GetCollection<BsonDocument>(Constants.GameCollectionName);
-            await collection.InsertOneAsync(gameEntity);
+            await _gamesCollection.Insert(game.ToGame());
             gamesAdded++;
 
             _logger.LogInformation("Game added in Season {SeasonCode} game code {GameCode}", @event.SeasonCode, @event.GameCode);

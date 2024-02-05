@@ -4,6 +4,8 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using SportDataImport.Clients;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Import;
 
@@ -14,13 +16,16 @@ internal interface ITeamsImport
 
 internal sealed class TeamsImport : ITeamsImport
 {
+    private readonly IMongoService<Team> _teamsCollection;
     private readonly IEuroleagueClient _euroleagueClient;
     private readonly ILogger _logger;
 
     public TeamsImport(
         IEuroleagueClient euroleagueClient,
-        ILogger<TeamsImport> logger)
+        ILogger<TeamsImport> logger,
+        IMongoService<Team> teamCollection)
     {
+        _teamsCollection = teamCollection;
         _euroleagueClient = euroleagueClient;
         _logger = logger;
     }
@@ -40,12 +45,8 @@ internal sealed class TeamsImport : ITeamsImport
             throw new ArgumentOutOfRangeException(nameof(teams));
         }
 
-        var mongoClient = new MongoClient(Constants.ConnectionString);
-        var database = mongoClient.GetDatabase(Constants.DatabaseName);
-        var collection = database.GetCollection<BsonDocument>(Constants.TeamCollectionName);
-
-        var documents = teams.Select(x => x.ToTeam().ToBsonDocument());
-        await collection.InsertManyAsync(documents);
+        var teamsToInsert = teams.Select(x => x.ToTeam()).ToList();
+        await _teamsCollection.InsertMany(teamsToInsert);
 
         _logger.LogInformation("{Count} teams were imported", teams.Length);
     }

@@ -1,31 +1,35 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using SportDataImport.Enums;
+using SportDataImport.Domain.Enums;
 using SportDataImport.Interfaces;
-using SportDataImport.Mongo;
+using SportDataImport.Mongo.Entities;
+using SportDataImport.Mongo.Interfaces;
 
 namespace SportDataImport.Services;
 
 internal class EuroleagueFeaturesV4Service : IEuroleagueFeaturesService
 {
-
+    private readonly IMongoService<EuroleagueFeatureV2> _featuresV2Collection;
+    private readonly IMongoService<EuroleagueFeatureV4> _featuresV4Collection;
+    private readonly IMongoService<Game> _gamesCollection;
     private readonly ILogger<EuroleagueFeaturesV4Service> _logger;
 
     public EuroleagueFeaturesV4Service(
-        ILogger<EuroleagueFeaturesV4Service> logger)
+        ILogger<EuroleagueFeaturesV4Service> logger, 
+        IMongoService<EuroleagueFeatureV2> featuresV2Collection, 
+        IMongoService<EuroleagueFeatureV4> featuresV4Collection, 
+        IMongoService<Game> gamesCollection)
     {
         _logger = logger;
+        _featuresV2Collection = featuresV2Collection;
+        _featuresV4Collection = featuresV4Collection;
+        _gamesCollection = gamesCollection;
     }
 
     public async Task PrepareFeatureData()
     {
-        var mongoClient = new MongoClient(Constants.ConnectionString);
-        var database = mongoClient.GetDatabase(Constants.DatabaseName);
-        var gamesCollection = database.GetCollection<Game>(Constants.GameCollectionName);
-        var euroleagueFeaturesV2Collection = database.GetCollection<EuroleagueFeatureV2>(Constants.EuroleagueFeaturesV2CollectionName);
-
-        var games = await gamesCollection.Find(_ => true).ToListAsync();
-        var featuresV2 = await euroleagueFeaturesV2Collection.Find(_ => true).ToListAsync();
+        var games = await _gamesCollection.GetAll();
+        var featuresV2 = await _featuresV2Collection.GetAll();
 
         var featuresV4 = new List<EuroleagueFeatureV4>();
         foreach (var featureV2 in featuresV2)
@@ -60,12 +64,12 @@ internal class EuroleagueFeaturesV4Service : IEuroleagueFeaturesService
 
                     if (DatesAreInTheSameWeek(previousGameDate.UtcDateTime, featureGameDate.UtcDateTime))
                     {
-                        weekType = WeekType.DoubleWeek2;
+                        weekType = WeekType.DoubleWeekSecond;
                     }
                     else if (nextGame != null && DatesAreInTheSameWeek(featureGameDate.UtcDateTime, nextGame.UtcDate?.UtcDateTime ??
                         throw new InvalidDataException($"{nameof(Game.UtcDate)} is not defined")))
                     {
-                        weekType = WeekType.DoubleWeek1;
+                        weekType = WeekType.DoubleWeekFirst;
                     }
                     else
                     {
@@ -77,14 +81,12 @@ internal class EuroleagueFeaturesV4Service : IEuroleagueFeaturesService
             featuresV4.Add(new EuroleagueFeatureV4(weekType, featureV2));
         }
 
-        var featuresV4Collection = database.GetCollection<EuroleagueFeatureV4>(Constants.EuroleagueFeaturesV4CollectionName);
-        var featuresCount = await featuresV4Collection.CountDocumentsAsync(x => true);
-
+        var featuresCount = await _featuresV4Collection.Count();
         if (featuresCount > 0)
         {
-            featuresV4Collection.DeleteMany(x => true);
+            await _featuresV4Collection.DeleteBy(x => true);
         }
-        await featuresV4Collection.InsertManyAsync(featuresV4);
+        await _featuresV4Collection.InsertMany(featuresV4);
     }
 
     private bool DatesAreInTheSameWeek(DateTime date1, DateTime date2)
