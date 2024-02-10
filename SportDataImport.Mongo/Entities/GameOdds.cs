@@ -1,10 +1,11 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using SportDataImport.Domain.Enums;
+using SportDataImport.Mongo.Attributes;
 
 namespace SportDataImport.Mongo.Entities;
 
-// TODO: ADD collection name
+[BsonCollectionName(Constants.GameOddsCollectionName)]
 public sealed record class GameOdds
 {
     [BsonId]
@@ -12,6 +13,12 @@ public sealed record class GameOdds
 
     [BsonElement("season")]
     public string? SeasonCode { get; set; }
+
+    [BsonElement("sport")]
+    public string? Sport { get; set; }
+
+    [BsonElement("tournament")]
+    public string? Tournament { get; set; }
 
     [BsonElement("competitionCode")]
     public Competition Competition { get; set; }
@@ -38,13 +45,19 @@ public sealed record class GameOdds
     public string AwayTeamName { get; set; }
 
     [BsonElement("odds")]
-    public Book[] Odds { get; set; }
+    public BookOdd[] Odds { get; set; }
 
     [BsonElement("link")]
     public string OddsLink { get; set; }
+
+    [BsonElement("inserted_at")]
+    public DateTime InsertedAt { get; set; }
+
+    [BsonElement("updated_at")]
+    public DateTime? UpdatedAt { get; set; }
 }
 
-public sealed record class Book
+public sealed record class BookOdd
 {
     [BsonElement("name")]
     public string Name { get; set; }

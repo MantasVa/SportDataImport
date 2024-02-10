@@ -7,6 +7,8 @@ public interface IMongoService<T> where T : class
 {
     Task<long> Count();
 
+    Task<T> GetOne(Expression<Func<T, bool>> filter);
+
     Task<List<T>> GetBy(Expression<Func<T, bool>> filter);
 
     Task<List<T>> GetAll();

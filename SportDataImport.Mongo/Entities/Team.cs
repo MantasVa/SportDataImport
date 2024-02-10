@@ -14,6 +14,9 @@ public sealed record class Team
     [BsonElement("name")]
     public string? Name { get; set; }
 
+    [BsonElement("externalName")]
+    public string? ExternalName { get; set; }
+
     [BsonElement("alias")]
     public string? Alias { get; set; }
 

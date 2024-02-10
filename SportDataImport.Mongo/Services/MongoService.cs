@@ -21,6 +21,11 @@ public class MongoService<T> : IMongoService<T> where T : class
         return await _collection.CountDocumentsAsync(FilterDefinition<T>.Empty);
     }
 
+    public async Task<T> GetOne(Expression<Func<T, bool>> filter)
+    {
+        return await _collection.Find(filter).FirstAsync();
+    }
+
     public async Task<List<T>> GetBy(Expression<Func<T, bool>> filter)
     {
         return await _collection.Find(filter).ToListAsync();
