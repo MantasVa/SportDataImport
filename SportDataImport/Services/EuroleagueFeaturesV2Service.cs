@@ -29,7 +29,7 @@ internal sealed class EuroleagueFeaturesV2Service : IEuroleagueFeaturesService
         _competitionCode = Competition.Euroleague.ToAbbreviation();
     }
 
-    public async Task PrepareFeatureData()
+    public async Task PrepareFeatureData(string[] seasons)
     {
         var games = await _gamesCollection.GetAll();
         var features = await _featuresCollection.GetAll();

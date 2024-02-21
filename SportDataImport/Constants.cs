@@ -1,49 +1,37 @@
-﻿namespace SportDataImport;
+﻿using SportDataImport.Domain;
+
+namespace SportDataImport;
 
 internal static class Constants
 {
-    public static string[] EuroleagueSeasonsWithBetOddsData = [
-        //"E2009",
-        //"E2010",
-        //"E2011",
-        //"E2012",
-        //"E2013",
-        //"E2014",
-        //"E2015",
-        //"E2016",
-        //"E2017",
-        //"E2018",
-        //"E2019",
-        //"E2020",
-        //"E2021",
-        //"E2022",
-        "E2023",
+    public static int[] ModernEuroleagueSeasonsYears = [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
     ];
 
-    public static string[] ModernEuroleagueSeasons = [
-        "E2000",
-        "E2001",
-        "E2002",
-        "E2003",
-        "E2004",
-        "E2005",
-        "E2006",
-        "E2007",
-        "E2008",
-        "E2009",
-        "E2010",
-        "E2011",
-        "E2012",
-        "E2013",
-        "E2014",
-        "E2015",
-        "E2016",
-        "E2017",
-        "E2018",
-        "E2019",
-        "E2020",
-        "E2021",
-        "E2022",
-        "E2023",
-    ];
+    public static string[] EuroleagueSeasonsWithBetOddsData = ModernEuroleagueSeasonsYears.Where(year => year >= 2008).Select(EuroleagueHelper.ToSeason).ToArray();
+
+    public static string[] Top16Seasons = ModernEuroleagueSeasonsYears.Where(year => year < 2016).Select(EuroleagueHelper.ToSeason).ToArray();
 }

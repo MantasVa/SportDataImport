@@ -2,5 +2,5 @@
 
 internal interface IEuroleagueFeaturesService
 {
-    Task PrepareFeatureData();
+    Task PrepareFeatureData(string[] seasons);
 }

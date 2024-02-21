@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using SportDataImport.Clients;
+using SportDataImport.Domain;
 using SportDataImport.Mongo.Entities;
 using SportDataImport.Mongo.Interfaces;
 
@@ -10,7 +11,6 @@ internal interface IScheduleImportJob
 {
     Task ImportEuroleagueScheduleAsync();
 }
-
 
 internal class ScheduleImportJob : IScheduleImportJob
 {

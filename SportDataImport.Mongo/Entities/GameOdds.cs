@@ -63,8 +63,8 @@ public sealed record class BookOdd
     public string Name { get; set; }
 
     [BsonElement("home")]
-    public string HomeOdd { get; set; }
+    public double HomeOdd { get; set; }
 
     [BsonElement("away")]
-    public string AwayOdd { get; set; }
+    public double AwayOdd { get; set; }
 }

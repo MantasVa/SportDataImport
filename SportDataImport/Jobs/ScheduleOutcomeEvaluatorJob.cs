@@ -62,7 +62,7 @@ internal class ScheduleOutcomeEvaluatorJob : IScheduleOutcomeEvaluatorJob
             var storedGames = await _gamesCollection.GetBy(x => x.SeasonCode == @event.SeasonCode && x.GameCode == @event.GameCode);
             if (storedGames.Any())
             {
-                _logger.LogWarning("Scheduled event with season code {SeasonCode} and code {GameCode} is already present in collection", @event.SeasonCode, @event.GameCode);
+                _logger.LogDebug("Scheduled event with season code {SeasonCode} and code {GameCode} is already present in collection", @event.SeasonCode, @event.GameCode);
                 continue;
             }
 

@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Newtonsoft.Json;
 using SportDataImport.Clients;
+using SportDataImport.Domain;
 using SportDataImport.Mongo.Entities;
 using SportDataImport.Mongo.Interfaces;
 

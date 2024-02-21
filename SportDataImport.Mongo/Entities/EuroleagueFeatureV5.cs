@@ -10,8 +10,8 @@ public record EuroleagueFeatureV5
     [BsonId]
     public ObjectId Id { get; set; }
 
-    [BsonElement("seasonCode")]
-    public string SeasonCode { get; init; }
+    [BsonElement("season")]
+    public string Season { get; init; }
 
     [BsonElement("round")]
     public long Round { get; init; }
@@ -19,8 +19,17 @@ public record EuroleagueFeatureV5
     [BsonElement("home")]
     public string Home { get; init; }
 
-    [BsonElement("bookName")]
-    public string BookName { get; init; }
+    [BsonElement("bookName1")]
+    public string BookName1 { get; init; }
+
+    [BsonElement("bookName2")]
+    public string BookName2 { get; init; }
+
+    [BsonElement("bookName3")]
+    public string BookName3 { get; init; }
+
+    [BsonElement("insertedAt")]
+    public DateTime InsertedAt { get; init; }
 
     [BsonElement("homeLast1")]
     public int? HomeLast1 { get; init; }
@@ -49,8 +58,14 @@ public record EuroleagueFeatureV5
     [BsonElement("homeWinPercentage")]
     public float HomeWinPercentage { get; init; }
 
-    [BsonElement("homeOdds")]
-    public float HomeOdds { get; init; }
+    [BsonElement("homeOdds1")]
+    public double HomeOdds1 { get; init; }
+
+    [BsonElement("homeOdds2")]
+    public double HomeOdds2 { get; init; }
+
+    [BsonElement("homeOdds3")]
+    public double HomeOdds3 { get; init; }
 
     [BsonElement("away")]
     public string Away { get; init; }
@@ -82,8 +97,14 @@ public record EuroleagueFeatureV5
     [BsonElement("awayWinPercentage")]
     public float AwayWinPercentage { get; init; }
 
-    [BsonElement("awayOdds")]
-    public float AwayOdds { get; init; }
+    [BsonElement("awayOdds1")]
+    public double AwayOdds1 { get; init; }
+
+    [BsonElement("awayOdds2")]
+    public double AwayOdds2 { get; init; }
+
+    [BsonElement("awayOdds3")]
+    public double AwayOdds3 { get; init; }
 
     [BsonElement("homeWin")]
     public bool HomeWin { get; init; }

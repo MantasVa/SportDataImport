@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using SportDataImport.Domain;
 using SportDataImport.Domain.Enums;
 using SportDataImport.Interfaces;
 using SportDataImport.Mongo.Entities;
@@ -30,7 +31,7 @@ public sealed class EuroleagueFeaturesService : IEuroleagueFeaturesService
         _competitionCode = Competition.Euroleague.ToAbbreviation();
     }
 
-    public async Task PrepareFeatureData()
+    public async Task PrepareFeatureData(string[] seasons)
     {
         var currentEuroleagueSeasonCode = EuroleagueHelper.GetCurrentEuroleagueSeasonCode();
         var finalFourTeams = await _teamCollection.GetBy(x => x.FinalFourAppearances != null);

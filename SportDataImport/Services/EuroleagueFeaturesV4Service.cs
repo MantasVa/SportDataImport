@@ -26,7 +26,7 @@ internal class EuroleagueFeaturesV4Service : IEuroleagueFeaturesService
         _gamesCollection = gamesCollection;
     }
 
-    public async Task PrepareFeatureData()
+    public async Task PrepareFeatureData(string[] seasons)
     {
         var games = await _gamesCollection.GetAll();
         var featuresV2 = await _featuresV2Collection.GetAll();
