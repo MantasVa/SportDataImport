@@ -69,7 +69,7 @@ internal class EuroleagueFeaturesV5Service : IEuroleagueFeaturesService
 
                 if (!retrievedOdds.Any())
                 {
-                    _logger.LogError("Cannot pull out odds for game {}:{} in season {} and round {}", homeTeam, awayTeam, season, game.Round);
+                    _logger.LogError("Cannot pull out odds for game {HomeTeam}:{AwayTeam} in season {Season} and round {Round}", homeTeam, awayTeam, season, game.Round);
                     skippedCounter++;
                     continue;
                 }
